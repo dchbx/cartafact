@@ -100,7 +100,7 @@ module Api
       def stream_download(document)
         disposition = ActionDispatch::Http::ContentDisposition.format(
           disposition: "attachment",
-          filename: document.file.original_filename
+          filename: document.title
         )
         set_headers_for_download_stream(document, disposition)
         file = document.file
