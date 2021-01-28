@@ -64,7 +64,6 @@ body: {
       type: string
     }],                                    # Required.
     document_type: string,                 # Required.
-    content: 'uploaded file content here', # Required.
     creator: string,                       # Required.
     publisher: string,                     # Required.
     type: string,                          # Required.
@@ -87,6 +86,7 @@ body: {
     extent: string,                        # Optional.
     file_data: string,                     # Optional.
   }.to_json,
+  content: 'uploaded file content here'   # Required.
 }
 ```
 
