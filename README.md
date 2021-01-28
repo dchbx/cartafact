@@ -62,31 +62,31 @@ body: {
     subjects: [{
       id: string,
       type: string
-    }],
-    document_type: string
+    }],                                    # Required.
+    document_type: string,                 # Required.
+    content: 'uploaded file content here', # Required.
+    creator: string,                       # Required.
+    publisher: string,                     # Required.
+    type: string,                          # Required.
+    format: string,                        # Required.
+    source: string,                        # Required.
+    language: string,                      # Required.
+    date_submitted: date,                  # Required.
+    title: string,                         # Optional.
+    identifier: string,                    # Optional.
+    description: string,                   # Optional.
+    contributor: string,                   # Optional.
+    created: date,                         # Optional.
+    date_accepted: date,                   # Optional.
+    expire: date,                          # Optional.
+    relation: string,                      # Optional.
+    coverage: string,                      # Optional.
+    tags: string,                          # Optional.
+    rights: string,                        # Optional.
+    access_rights: string,                 # Optional.
+    extent: string,                        # Optional.
+    file_data: string,                     # Optional.
   }.to_json,
-  content: 'uploaded file content here', # Required.
-  creator: string,                       # Required.
-  publisher: string,                     # Required.
-  type: string,                          # Required.
-  format: string,                        # Required.
-  source: string,                        # Required.
-  language: string,                      # Required.
-  date_submitted: date,                  # Required.
-  title: string,                         # Optional.
-  identifier: string,                    # Optional.
-  description: string,                   # Optional.
-  contributor: string,                   # Optional.
-  created: date,                         # Optional.
-  date_accepted: date,                   # Optional.
-  expire: date,                          # Optional.
-  relation: string,                      # Optional.
-  coverage: string,                      # Optional.
-  tags: string,                          # Optional.
-  rights: string,                        # Optional.
-  access_rights: string,                 # Optional.
-  extent: string,                        # Optional.
-  file_data: string,                     # Optional.
 }
 ```
 
