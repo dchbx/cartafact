@@ -402,7 +402,7 @@ RSpec.describe Api::V1::DocumentsController, type: :controller do
           h.split("=")
         end
         content_hash = Hash[content_pairs]
-        expect(content_hash["filename"]).to eq('Test Document')
+        expect(content_hash["filename"]).to eq(document.title)
       end
 
       it "has the original file data" do
