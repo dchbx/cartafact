@@ -371,7 +371,8 @@ RSpec.describe Api::V1::DocumentsController, type: :controller do
     let(:document) do
       FactoryBot.create(
         :document,
-        file: tempfile
+        file: tempfile,
+        title: 'Test Document'
       )
     end
 
@@ -401,7 +402,7 @@ RSpec.describe Api::V1::DocumentsController, type: :controller do
           h.split("=")
         end
         content_hash = Hash[content_pairs]
-        expect(content_hash["filename"]).to eq("\"" + document.file.original_filename + "\"")
+        expect(content_hash["filename"]).to eq('Test Document')
       end
 
       it "has the original file data" do
