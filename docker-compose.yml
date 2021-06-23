@@ -26,6 +26,9 @@ services:
       - DB_HOST=${DB_HOST:-db}
       - DB_PORT=${DB_PORT:-27017}
 
+    environment:
+      - DB_HOST=${DB_HOST:-db}
+      - DB_PORT=${DB_PORT:-27017}
   db:
     image: mongo:4.2
     volumes:

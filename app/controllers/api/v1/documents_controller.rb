@@ -47,6 +47,37 @@ module Api
         end
       end
 
+      # update is delete & create new one
+      def update
+        authorization_information = verify_authorization_headers_present
+        return nil unless authorization_information
+
+        # create new record only if destroy is succesful
+        destroyed = ::Cartafact::Entities::Operations::Documents::Destroy.call({ id: params[:id] })
+        if destroyed.success?
+          created = ::Cartafact::Entities::Operations::Documents::Create.call(create_params)
+          if created.success?
+            render :json => created.value!, status: :created
+          else
+            render :json => created.failure, status: "422"
+          end
+        else
+          render :json => destroyed.failure, status: 404
+        end
+      end
+
+      def destroy
+        authorization_information = verify_authorization_headers_present
+        return nil unless authorization_information
+
+        result = ::Cartafact::Entities::Operations::Documents::Destroy.call({ id: params[:id] })
+        if result.success?
+          render :json => {}, status: :ok
+        else
+          render :json => result.failure, status: 404
+        end
+      end
+
       include ActionController::Live
       def download
         authorization_information = verify_authorization_headers_present
@@ -69,7 +100,7 @@ module Api
       def stream_download(document)
         disposition = ActionDispatch::Http::ContentDisposition.format(
           disposition: "attachment",
-          filename: document.file.original_filename
+          filename: document.title
         )
         set_headers_for_download_stream(document, disposition)
         file = document.file

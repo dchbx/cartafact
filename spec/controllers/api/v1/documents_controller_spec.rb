@@ -98,6 +98,90 @@ RSpec.describe Api::V1::DocumentsController, type: :controller do
     end
   end
 
+  describe "#update" do
+    let(:document) { FactoryBot.create(:document) }
+    context "succesful with valid params" do
+      before :each do
+        allow(Cartafact::Operations::ValidateResourceIdentitySignature).to receive(:call).with(
+          requesting_identity_header: nil,
+          requesting_identity_signature_header: nil
+        ).and_return(authorization_successful)
+        post :update, params: {
+          document: JSON.dump(
+            {
+              subjects: [{ id: 'abc', type: 'consumer' }],
+              document_type: 'vlp_doc',
+              format: "application/pdf",
+              creator: 'dc',
+              publisher: 'dc',
+              type: 'text',
+              source: 'enroll_system',
+              language: 'en',
+              date_submitted: Date.today
+            }
+          ),
+          id: document.id,
+          content: Rack::Test::UploadedFile.new(tempfile, "application/pdf")
+        }
+      end
+
+      it "should be success" do
+        expect(response).to have_http_status(:success)
+      end
+
+      it "should return document reference id" do
+        parsed_response = JSON.parse(response.body)
+        expect(parsed_response['id']).not_to eq nil
+        expect(parsed_response['id']).not_to eq document.id
+      end
+
+      it "should create the file upload" do
+        parsed_response = JSON.parse(response.body)
+        document_id = parsed_response['id']
+        document = Document.find(BSON::ObjectId.from_string(document_id))
+        expect(document.file.read).to eq "DATA GOES HERE"
+      end
+    end
+
+    context "with invalid params" do
+      let(:document) { FactoryBot.create(:document) }
+      before :each do
+        allow(Cartafact::Operations::ValidateResourceIdentitySignature).to receive(:call).with(
+          requesting_identity_header: nil,
+          requesting_identity_signature_header: nil
+        ).and_return(authorization_successful)
+        post :update, params: {
+          document: JSON.dump(document_type: ""),
+          id: document.id,
+          content: Rack::Test::UploadedFile.new(tempfile, "application/pdf")
+        }
+      end
+
+      it "is invalid" do
+        expect(response).to have_http_status("422")
+      end
+    end
+
+    context "when unauthorized" do
+      let(:document) { FactoryBot.create(:document) }
+      before :each do
+        allow(Cartafact::Operations::ValidateResourceIdentitySignature).to receive(:call).with(
+          requesting_identity_header: nil,
+          requesting_identity_signature_header: nil
+        ).and_return(authorization_failed)
+        post :update, params: {
+          document: JSON.dump(document_type: ""),
+          id: document.id,
+          content: Rack::Test::UploadedFile.new(tempfile, "application/pdf")
+        }
+      end
+
+      it "should be unauthorized" do
+        expect(response).to have_http_status(:forbidden)
+      end
+    end
+  end
+
   describe "#show" do
     let(:document) { FactoryBot.create(:document) }
     context "succesful with valid params" do
@@ -167,6 +251,68 @@ RSpec.describe Api::V1::DocumentsController, type: :controller do
     end
   end
 
+  describe "#destroy" do
+    let(:document) { FactoryBot.create(:document) }
+    context "succesful with valid params" do
+      let(:document_json) { {} }
+
+      let(:find_success) do
+        double(
+          success?: true
+        )
+      end
+
+      before :each do
+        allow(Cartafact::Operations::ValidateResourceIdentitySignature).to receive(:call).with(
+          requesting_identity_header: nil,
+          requesting_identity_signature_header: nil
+        ).and_return(authorization_successful)
+        allow(::Cartafact::Entities::Operations::Documents::Destroy).to receive(:call).with(
+          id: document.id
+        ).and_return(find_success)
+        delete :destroy, params: { id: document.id }
+      end
+
+      it "should be success" do
+        expect(response).to have_http_status(:success)
+      end
+    end
+
+    context "when unauthorized" do
+      before :each do
+        delete :destroy, params: { id: document.id }
+      end
+
+      it "is forbidden" do
+        expect(response).to have_http_status(:forbidden)
+      end
+    end
+
+    context "when not found" do
+      let(:find_failure) do
+        double(
+          success?: false,
+          failure: { errors: 'xyz' }
+        )
+      end
+
+      before :each do
+        allow(Cartafact::Operations::ValidateResourceIdentitySignature).to receive(:call).with(
+          requesting_identity_header: nil,
+          requesting_identity_signature_header: nil
+        ).and_return(authorization_successful)
+        allow(::Cartafact::Entities::Operations::Documents::Destroy).to receive(:call).with(
+          id: document.id
+        ).and_return(find_failure)
+        delete :destroy, params: { id: document.id }
+      end
+
+      it "is not found" do
+        expect(response).to have_http_status(:not_found)
+      end
+    end
+  end
+
   describe "#index" do
     let(:document_list) { [] }
 
@@ -225,7 +371,8 @@ RSpec.describe Api::V1::DocumentsController, type: :controller do
     let(:document) do
       FactoryBot.create(
         :document,
-        file: tempfile
+        file: tempfile,
+        title: 'Test Document'
       )
     end
 
@@ -255,7 +402,7 @@ RSpec.describe Api::V1::DocumentsController, type: :controller do
           h.split("=")
         end
         content_hash = Hash[content_pairs]
-        expect(content_hash["filename"]).to eq("\"" + document.file.original_filename + "\"")
+        expect(content_hash["filename"]).to eq(document.title)
       end
 
       it "has the original file data" do
